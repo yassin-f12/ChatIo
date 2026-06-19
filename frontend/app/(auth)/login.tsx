@@ -4,7 +4,9 @@ import Input from '@/components/Input';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { useAuth } from '@/contexts/authContext';
 import { verticalScale } from '@/utils/styling';
+import axios from 'axios';
 import { useRouter } from 'expo-router';
 import { AtIcon, LockIcon, UserIcon } from 'phosphor-react-native';
 import { useState } from 'react';
@@ -24,10 +26,23 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  const { signIn } = useAuth();
+
   const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Erreur de connexion', 'Veuillez remplir tous les champs');
       return;
+    }
+
+    try {
+      setIsLoading(true);
+      await signIn(email, password);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Connexion échoué';
+      Alert.alert('Erreur', message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,6 +75,11 @@ const Login = () => {
               <Input
                 placeholder="Email"
                 value={email}
+                keyboardType="email-address"
+                returnKeyType="next"
+                autoCapitalize="none"
+                textContentType="emailAddress"
+                autoComplete="email"
                 onChangeText={setEmail}
                 icon={
                   <AtIcon size={verticalScale(26)} color={colors.neutral600} />
@@ -69,6 +89,8 @@ const Login = () => {
                 placeholder="Mot de passe ultra secret"
                 value={password}
                 secureTextEntry
+                returnKeyType="done"
+                textContentType="password"
                 onChangeText={setPassword}
                 icon={
                   <LockIcon
