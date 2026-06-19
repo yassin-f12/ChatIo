@@ -1,6 +1,7 @@
 import { Document, Types } from "mongoose";
 
 export interface UserProps extends Document {
+  _id: Types.ObjectId;
   email: string;
   password: string;
   name?: string;
