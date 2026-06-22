@@ -28,7 +28,7 @@ export interface UserProps {
 export interface UserDataProps {
   name: string;
   email: string;
-  avatar?: any;
+  avatar?: string | null;
 }
 
 export interface InputProps extends TextInputProps {
@@ -68,9 +68,9 @@ export type ScreenWrapperProps = {
   bgOpacity?: number;
 };
 
-export type ResponseProps = {
+export type ResponseProps<T = unknown> = {
   success: boolean;
-  data?: any;
+  data?: T;
   msg?: string;
 };
 
