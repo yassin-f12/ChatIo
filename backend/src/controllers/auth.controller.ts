@@ -12,7 +12,7 @@ export const registerUser = async (
   try {
     let user = await User.findOne({ email });
     if (user) {
-      res.status(400).json({ success: false, msg: "User already exists" });
+      res.status(400).json({ success: false, msg: "Cet email est déjà utilisé" });
       return;
     }
 
@@ -22,19 +22,16 @@ export const registerUser = async (
       name,
       avatar: avatar || "",
     });
-
     user.password = await argon2.hash(password);
-
     await user.save();
 
     const token = generateToken(user);
-
     res.json({
       success: true,
       token,
     });
   } catch (error) {
-    res.status(500).json({ success: false, msg: "Server error" });
+    res.status(500).json({ success: false, msg: "Erreur serveur, réessayez plus tard" });
   }
 };
 
@@ -44,23 +41,22 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(400).json({ success: false, msg: "Invalid credentials" });
+      res.status(400).json({ success: false, msg: "Identifiants invalides" });
       return;
     }
 
     const isMatch = await argon2.verify(user.password, password);
     if (!isMatch) {
-      res.status(400).json({ success: false, msg: "Invalid credentials" });
+      res.status(400).json({ success: false, msg: "Identifiants invalides" });
       return;
     }
 
     const token = generateToken(user);
-
     res.json({
       success: true,
       token,
     });
   } catch (error) {
-    res.status(500).json({ success: false, msg: "Server error" });
+    res.status(500).json({ success: false, msg: "Erreur serveur, réessayez plus tard" });
   }
 };
