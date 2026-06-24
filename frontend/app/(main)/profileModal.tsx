@@ -22,6 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { uploadFileToCloudinary } from '@/services/imageService';
 
 const ProfileModal = () => {
   const { user, signOut, updateToken } = useAuth();
@@ -90,7 +91,7 @@ const ProfileModal = () => {
     ]);
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     let { name, avatar } = userData;
     if (!name.trim()) {
       Alert.alert('Utilisateur', 'Veuillez entrez votre pseudo');
@@ -101,6 +102,18 @@ const ProfileModal = () => {
       name,
       avatar,
     };
+
+    if (avatar) {
+      setLoading(true);
+      const res = await uploadFileToCloudinary({ uri: avatar }, 'profiles');
+      if (res.success) {
+        data.avatar = res.data;
+      } else {
+        Alert.alert('User', res.msg);
+        setLoading(false);
+        return;
+      }
+    }
 
     setLoading(true);
 

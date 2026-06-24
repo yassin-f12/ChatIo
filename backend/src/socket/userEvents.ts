@@ -19,7 +19,7 @@ export function registerUserEvents(io: SocketIOServer, socket: Socket) {
         const updateUser = await User.findByIdAndUpdate(
           userId,
           { name: data.name, avatar: data.avatar },
-          { new: true },
+          { returnDocument: 'after' },
         );
 
         if (!updateUser) {
