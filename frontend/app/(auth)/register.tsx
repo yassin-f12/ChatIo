@@ -53,7 +53,8 @@ const Register = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScreenWrapper showPattern={true} bgOpacity={0.5}>
         <View style={styles.container}>
@@ -68,6 +69,7 @@ const Register = () => {
             <ScrollView
               contentContainerStyle={styles.form}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
               <View style={{ gap: spacingY._10, marginBottom: spacingY._15 }}>
                 <Typo size={28} fontWeight={'600'}>

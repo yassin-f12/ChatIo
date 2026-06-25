@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
@@ -120,83 +121,93 @@ const ProfileModal = () => {
     updateProfile(data);
   };
   return (
-    <ScreenWrapper isModal={true}>
-      <View style={styles.container}>
-        <Header
-          title="Modifier le profil"
-          leftIcon={
-            Platform.OS == 'android' && <BackButton color={colors.black} />
-          }
-        />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScreenWrapper isModal={true}>
+        <View style={styles.container}>
+          <Header
+            title="Modifier le profil"
+            leftIcon={
+              Platform.OS == 'android' && <BackButton color={colors.black} />
+            }
+          />
 
-        <ScrollView contentContainerStyle={styles.form}>
-          <View style={styles.avatarContainer}>
-            <Avatar uri={userData.avatar ?? null} size={170} />
-            <TouchableOpacity style={styles.editIcon} onPress={onPickImage}>
-              <PencilIcon size={verticalScale(20)} color={colors.neutral800} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ gap: spacingY._20 }}>
-            <View style={styles.inputContainer}>
-              <Typo style={{ paddingLeft: spacingX._10 }}>Email</Typo>
-              <Input
-                value={userData.email}
-                containerStyle={{
-                  borderColor: colors.neutral350,
-                  paddingLeft: spacingX._20,
-                  backgroundColor: colors.neutral300,
-                }}
-                onChangeText={(value) =>
-                  setUserData({ ...userData, email: value })
-                }
-                editable={false}
-              />
-            </View>
-          </View>
-          <View style={{ gap: spacingY._20 }}>
-            <View style={styles.inputContainer}>
-              <Typo style={{ paddingLeft: spacingX._10 }}>Pseudo</Typo>
-              <Input
-                value={userData.name}
-                containerStyle={{
-                  borderColor: colors.neutral350,
-                  paddingLeft: spacingX._20,
-                }}
-                onChangeText={(value) =>
-                  setUserData({ ...userData, name: value })
-                }
-              />
-            </View>
-          </View>
-        </ScrollView>
-      </View>
-
-      <View style={styles.footer}>
-        {!loading && (
-          <Button
-            style={{
-              backgroundColor: colors.rose,
-              height: verticalScale(56),
-              width: verticalScale(56),
-            }}
-            onPress={showLogoutAlert}
+          <ScrollView
+            contentContainerStyle={styles.form}
+            keyboardShouldPersistTaps="handled"
           >
-            <SignOutIcon
-              size={verticalScale(30)}
-              color={colors.white}
-              weight="bold"
-            />
-          </Button>
-        )}
+            <View style={styles.avatarContainer}>
+              <Avatar uri={userData.avatar ?? null} size={170} />
+              <TouchableOpacity style={styles.editIcon} onPress={onPickImage}>
+                <PencilIcon
+                  size={verticalScale(20)}
+                  color={colors.neutral800}
+                />
+              </TouchableOpacity>
+            </View>
 
-        <Button style={{ flex: 1 }} onPress={onSubmit} loading={loading}>
-          <Typo color={colors.black} fontWeight={'700'}>
-            Modifier
-          </Typo>
-        </Button>
-      </View>
-    </ScreenWrapper>
+            <View style={{ gap: spacingY._20 }}>
+              <View style={styles.inputContainer}>
+                <Typo style={{ paddingLeft: spacingX._10 }}>Email</Typo>
+                <Input
+                  value={userData.email}
+                  containerStyle={{
+                    borderColor: colors.neutral350,
+                    paddingLeft: spacingX._20,
+                    backgroundColor: colors.neutral300,
+                  }}
+                  onChangeText={(value) =>
+                    setUserData({ ...userData, email: value })
+                  }
+                  editable={false}
+                />
+              </View>
+            </View>
+            <View style={{ gap: spacingY._20 }}>
+              <View style={styles.inputContainer}>
+                <Typo style={{ paddingLeft: spacingX._10 }}>Pseudo</Typo>
+                <Input
+                  value={userData.name}
+                  containerStyle={{
+                    borderColor: colors.neutral350,
+                    paddingLeft: spacingX._20,
+                  }}
+                  onChangeText={(value) =>
+                    setUserData({ ...userData, name: value })
+                  }
+                />
+              </View>
+            </View>
+            <View style={styles.footer}>
+              {!loading && (
+                <Button
+                  style={{
+                    backgroundColor: colors.rose,
+                    height: verticalScale(56),
+                    width: verticalScale(56),
+                  }}
+                  onPress={showLogoutAlert}
+                >
+                  <SignOutIcon
+                    size={verticalScale(30)}
+                    color={colors.white}
+                    weight="bold"
+                  />
+                </Button>
+              )}
+
+              <Button style={{ flex: 1 }} onPress={onSubmit} loading={loading}>
+                <Typo color={colors.black} fontWeight={'700'}>
+                  Modifier
+                </Typo>
+              </Button>
+            </View>
+          </ScrollView>
+        </View>
+      </ScreenWrapper>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -216,12 +227,14 @@ const styles = StyleSheet.create({
     gap: scale(12),
     paddingTop: spacingY._15,
     borderTopColor: colors.neutral200,
-    marginBottom: spacingY._10,
+    marginTop: 'auto',
     borderTopWidth: 1,
   },
   form: {
     gap: spacingY._30,
     marginTop: spacingY._15,
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   avatarContainer: {
     position: 'relative',

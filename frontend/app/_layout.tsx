@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { AuthProvider } from '@/contexts/authContext';
 
@@ -7,6 +7,10 @@ const StackLayout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen
         name="(main)/profileModal"
+        options={{ presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="(main)/newConversationModal"
         options={{ presentation: 'modal' }}
       />
     </Stack>
