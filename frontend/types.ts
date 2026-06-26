@@ -141,3 +141,10 @@ export type MessageProps = {
   isMe?: boolean;
   createdAt: string;
 };
+
+export type Contact = {
+  _id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}

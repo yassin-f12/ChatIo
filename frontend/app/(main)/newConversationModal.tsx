@@ -14,17 +14,21 @@ import {
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Input from '@/components/Input';
 import Typo from '@/components/Typo';
 import { useAuth } from '@/contexts/authContext';
 import Button from '@/components/Button';
 import { verticalScale } from '@/utils/styling';
+import { getContacts, newConversation } from '@/socket/socketEvents';
+import { Contact, ConversationProps, ResponseProps, UserProps } from '@/types';
+import { uploadFileToCloudinary } from '@/services/imageService';
 
 const NewConversationModal = ({}) => {
   const { isGroup } = useLocalSearchParams();
   const isGroupMode = isGroup == '1';
   const router = useRouter();
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [groupAvatar, setGroupAvatar] = useState<{ uri: string } | null>(null);
   const [groupName, setGroupName] = useState('');
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
@@ -33,6 +37,41 @@ const NewConversationModal = ({}) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { user: currentUser } = useAuth();
+
+  useEffect(() => {
+    getContacts(processGetContacts);
+    newConversation(processNewConversation);
+    getContacts(null);
+    return () => {
+      getContacts(processGetContacts, true);
+      newConversation(processNewConversation, true);
+    };
+  }, []);
+
+  const processGetContacts = (res: ResponseProps<Contact[]>) => {
+    if (res.success && res.data) {
+      setContacts(res.data);
+    }
+  };
+
+  const processNewConversation = (res: ResponseProps<ConversationProps>) => {
+    setIsLoading(false);
+    if (res.success && res.data) {
+      router.back();
+      router.push({
+        pathname: '/(main)/conversation',
+        params: {
+          id: res.data._id,
+          name: res.data.name,
+          avatar: res.data.avatar,
+          type: res.data.type,
+          participants: JSON.stringify(res.data.participants),
+        },
+      });
+    } else {
+      Alert.alert('Error', res.msg);
+    }
+  };
 
   const onPickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -46,17 +85,19 @@ const NewConversationModal = ({}) => {
     }
   };
 
-  const toggleParticipant = (user: any) => {
-    setSelectedParticipants((prev: any) => {
-      if (prev.includes(user.id)) {
-        return prev.filter((id: string) => id != user.id);
-      }
+  const toggleParticipant = (user: UserProps) => {
+    const id = user.id;
+    if (!id) return;
 
-      return [...prev, user.id];
+    setSelectedParticipants((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((prevId) => prevId !== id);
+      }
+      return [...prev, id];
     });
   };
 
-  const onSelectUser = (user: any) => {
+  const onSelectUser = (user: UserProps) => {
     if (!currentUser) {
       Alert.alert('Erreur', 'Authentification requise');
       return;
@@ -65,26 +106,43 @@ const NewConversationModal = ({}) => {
     if (isGroupMode) {
       toggleParticipant(user);
     } else {
+      newConversation({
+        type: 'direct',
+        participants: [currentUser.id, user.id],
+      });
     }
   };
 
   const createGroup = async () => {
     if (!groupName.trim() || !currentUser || selectedParticipants.length < 2)
       return;
-  };
 
-  const contacts = [
-    {
-      id: '1',
-      name: 'Liam GG',
-      avatar: 'https://i.pravatar.cc/150?img=11',
-    },
-    {
-      id: '2',
-      name: 'Lionel ronaldo',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-    },
-  ];
+    setIsLoading(true);
+    try {
+      let avatar = null;
+      if (groupAvatar) {
+        const uploadResult = await uploadFileToCloudinary(
+          groupAvatar,
+          'group-avatars',
+        );
+        if (uploadResult.success) avatar = uploadResult.data;
+      }
+
+      newConversation({
+        type: 'group',
+        participants: [currentUser.id, ...selectedParticipants],
+        name: groupName,
+        avatar,
+      });
+    } catch (error: unknown) {
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Une erreur est survenue',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
