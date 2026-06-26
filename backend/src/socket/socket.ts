@@ -4,6 +4,8 @@ import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import type { AuthTokenPayload, SocketData } from "../types.js";
 import { registerUserEvents } from "./userEvents.js";
+import { registerChatEvents } from "./chatEvents.js";
+import Conversation from "../modals/Conversation.js";
 
 dotenv.config();
 
@@ -55,13 +57,30 @@ export function initializeSocket(server: HTTPServer): AppServer {
 
   io.on("connection", async (socket: AppSocket) => {
     const userId = socket.data.userId;
-    console.log(`Utilisateur connecté : ${userId}, name: ${socket.data.user?.name} `);
+    console.log(
+      `Utilisateur connecté : ${userId}, name: ${socket.data.user?.name} `,
+    );
 
     registerUserEvents(io, socket);
+    registerChatEvents(io, socket);
 
     socket.on("disconnect", () => {
       console.log("Utilisateur déconnecté :", userId);
     });
+
+    if (!userId) return;
+
+    try {
+      const conversations = await Conversation.find({
+        participants: userId,
+      }).select("_id");
+
+      const rooms = conversations.map((c) => c._id.toString());
+      socket.join(rooms);
+      
+    } catch (error: unknown) {
+      console.log("Erreur lors du rejoins :", error);
+    }
   });
 
   return io;
