@@ -1,3 +1,4 @@
+import { ReactionProps, ResponseProps } from '@/types';
 import { getSocket } from './socket';
 
 export const updateProfile = (payload: any, off: boolean = false) => {
@@ -88,4 +89,26 @@ export const getMessages = (payload: any, off: boolean = false) => {
   } else {
     socket.emit('getMessages', payload);
   }
+};
+
+export const toggleReaction = (data: {
+  messageId: string;
+  emoji: string;
+  userId: string;
+}) => {
+  const socket = getSocket();
+  if (!socket) return;
+  socket.emit('toggleReaction', data);
+};
+
+export const reactionUpdated = (
+  callback: (
+    res: ResponseProps<{ messageId: string; reactions: ReactionProps[] }>,
+  ) => void,
+  off = false,
+) => {
+  const socket = getSocket();
+  if (!socket) return;
+  if (off) socket.off('reactionUpdated', callback);
+  else socket.on('reactionUpdated', callback);
 };

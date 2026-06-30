@@ -7,7 +7,7 @@ import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/contexts/authContext';
-import { ConversationProps, MessageProps, ResponseProps } from '@/types';
+import { ConversationProps, MessageProps, ReactionProps, ResponseProps } from '@/types';
 import { scale, verticalScale } from '@/utils/styling';
 import { useLocalSearchParams } from 'expo-router';
 import {
@@ -31,7 +31,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import Loading from '@/components/Loading';
 import { uploadFileToCloudinary } from '@/services/imageService';
-import { getMessages, newMessage } from '@/socket/socketEvents';
+import { getMessages, newMessage, reactionUpdated } from '@/socket/socketEvents';
 
 const Conversation = () => {
   const { user: currentUser } = useAuth();
@@ -68,14 +68,18 @@ const Conversation = () => {
   useEffect(() => {
     newMessage(newMessageHandler);
     getMessages(messagesHandler);
+    reactionUpdated(reactionHandler);
     getMessages({ conversationId });
     return () => {
       newMessage(newMessageHandler, true);
       getMessages(messagesHandler, true);
+      reactionUpdated(reactionHandler, true);
     };
   }, []);
 
-  const newMessageHandler = (res: ResponseProps<MessageProps & { conversationId: string }>) => {
+  const newMessageHandler = (
+    res: ResponseProps<MessageProps & { conversationId: string }>,
+  ) => {
     setLoading(false);
     if (res.success && res.data) {
       if (res.data.conversationId == conversationId) {
@@ -84,6 +88,20 @@ const Conversation = () => {
     } else {
       Alert.alert('Erreur', res.msg);
     }
+  };
+
+  const reactionHandler = (
+    res: ResponseProps<{ messageId: string; reactions: ReactionProps[] }>,
+  ) => {
+    if (!res.success || !res.data) return;
+    const { messageId, reactions } = res.data;
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id.toString() === messageId.toString()
+          ? { ...msg, reactions }
+          : msg,
+      ),
+    );
   };
 
   const messagesHandler = (res: ResponseProps<MessageProps[]>) => {

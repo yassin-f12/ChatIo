@@ -1,5 +1,5 @@
-import { Router } from "expo-router";
-import { ReactNode } from "react";
+import { Router } from 'expo-router';
+import { ReactNode } from 'react';
 import {
   StyleProp,
   TextInput,
@@ -8,12 +8,12 @@ import {
   TextStyle,
   TouchableOpacityProps,
   ViewStyle,
-} from "react-native";
+} from 'react-native';
 
 export type TypoProps = {
   size?: number;
   color?: string;
-  fontWeight?: TextStyle["fontWeight"];
+  fontWeight?: TextStyle['fontWeight'];
   children: React.ReactNode;
   style?: StyleProp<TextStyle>;
   textProps?: TextProps;
@@ -107,7 +107,7 @@ export type ConversationListItemProps = {
 };
 
 export type LastMessageProps = {
-  id: string; 
+  id: string;
   content: string;
   sender: { id: string; name: string; avatar: string | null };
   type?: 'text' | 'image' | 'file';
@@ -117,7 +117,7 @@ export type LastMessageProps = {
 
 export type ConversationProps = {
   _id: string;
-  type: "direct" | "group";
+  type: 'direct' | 'group';
   avatar: string | null;
   participants: {
     _id: string;
@@ -131,6 +131,11 @@ export type ConversationProps = {
   updatedAt: string;
 };
 
+export type ReactionProps = {
+  emoji: string;
+  userId: string;
+};
+
 export type MessageProps = {
   id: string;
   sender: {
@@ -142,6 +147,7 @@ export type MessageProps = {
   attachement?: string | null;
   isMe?: boolean;
   createdAt: string;
+  reactions?: ReactionProps[];
 };
 
 export type Contact = {
@@ -149,4 +155,4 @@ export type Contact = {
   name: string;
   email: string;
   avatar?: string;
-}
+};
