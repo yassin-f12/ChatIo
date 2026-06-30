@@ -173,6 +173,43 @@ export function registerChatEvents(io: SocketIOServer, socket: Socket) {
       });
     }
   });
+
+  socket.on(
+    "toggleReaction",
+    async (data: { messageId: string; emoji: string; userId: string }) => {
+      try {
+        const message = await Message.findById(data.messageId);
+        if (!message) return;
+
+        const existingIndex = message.reactions.findIndex(
+          (r) => r.userId.toString() === data.userId,
+        );
+
+        if (existingIndex > -1) {
+          const existingReaction = message.reactions[existingIndex];
+          const isSameEmoji = existingReaction?.emoji === data.emoji;
+          message.reactions.splice(existingIndex, 1);
+          if (!isSameEmoji) {
+            message.reactions.push({ emoji: data.emoji, userId: data.userId });
+          }
+        } else {
+          message.reactions.push({ emoji: data.emoji, userId: data.userId });
+        }
+
+        await message.save();
+
+        io.to(message.conversationId.toString()).emit("reactionUpdated", {
+          success: true,
+          data: { messageId: message._id, reactions: message.reactions },
+        });
+      } catch (error: unknown) {
+        socket.emit("reactionUpdated", {
+          success: false,
+          msg: "Erreur lors de la réaction.",
+        });
+      }
+    },
+  );
 }
 
 // | Opérateur | Signification              |

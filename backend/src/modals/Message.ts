@@ -14,6 +14,16 @@ const messageSchema = new mongoose.Schema(
     },
     content: String,
     attachement: String,
+    reactions: [
+      {
+        emoji: { type: String, required: true },
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
