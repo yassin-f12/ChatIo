@@ -2,6 +2,43 @@ import { Socket, Server as SocketIOServer } from "socket.io";
 import Conversation from "../modals/Conversation.js";
 
 export function registerChatEvents(io: SocketIOServer, socket: Socket) {
+  socket.on("getConversations", async () => {
+    try {
+      const userId = socket.data.userId;
+      if (!userId) {
+        socket.emit("getConversations", {
+          success: false,
+          msg: "Non autorisé.",
+        });
+        return;
+      }
+
+      const conversations = await Conversation.find({
+        participants: userId,
+      })
+        .sort({ updateAt: -1 })
+        .populate({
+          path: "lastMessage",
+          select: "content senderId attachement createdAt",
+        })
+        .populate({
+          path: "participants",
+          select: "name avatar email",
+        })
+        .lean();
+
+      socket.emit("getConversations", {
+        success: true,
+        data: conversations,
+      });
+    } catch (error: unknown) {
+      socket.emit("getConversations", {
+        success: false,
+        msg: "Erreur lors de la récupérations des conversations.",
+      });
+    }
+  });
+
   socket.on("newConversation", async (data) => {
     try {
       if (data.type == "direct") {
