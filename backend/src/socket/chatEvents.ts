@@ -1,5 +1,6 @@
 import { Socket, Server as SocketIOServer } from "socket.io";
 import Conversation from "../modals/Conversation.js";
+import Message from "../modals/Message.js";
 
 export function registerChatEvents(io: SocketIOServer, socket: Socket) {
   socket.on("getConversations", async () => {
@@ -99,6 +100,76 @@ export function registerChatEvents(io: SocketIOServer, socket: Socket) {
       socket.emit("newConversation", {
         success: false,
         msg: "Erreur lors de la création de conversation.",
+      });
+    }
+  });
+
+  socket.on("newMessage", async (data) => {
+    try {
+      const message = await Message.create({
+        conversationId: data.conversationId,
+        senderId: data.sender.id,
+        content: data.content,
+        attachement: data.attachement,
+      });
+
+      io.to(data.conversationId).emit("newMessage", {
+        success: true,
+        data: {
+          id: message._id,
+          content: data.content,
+          sender: {
+            id: data.sender.id,
+            name: data.sender.name,
+            avatar: data.sender.avatar,
+          },
+          attachement: data.attachement,
+          createdAt: message.createdAt,
+          conversationId: data.conversationId,
+        },
+      });
+
+      await Conversation.findByIdAndUpdate(data.conversationId, {
+        lastMessage: message._id,
+      });
+    } catch (error: unknown) {
+      socket.emit("newMessage", {
+        success: false,
+        msg: "Erreur lors de l'envoi du message.",
+      });
+    }
+  });
+
+  socket.on("getMessages", async (data: { conversationId: string }) => {
+    try {
+      const messages = await Message.find({
+        conversationId: data.conversationId,
+      })
+        .sort({ createdAt: -1 })
+        .populate<{ senderId: { _id: string; name: string; avatar: string } }>({
+          path: "senderId",
+          select: "name avatar",
+        })
+        .lean();
+
+      const messagesWithSender = messages.map((message) => ({
+        ...message,
+        id: message._id,
+        sender: {
+          id: message.senderId._id,
+          name: message.senderId.name,
+          avatar: message.senderId.avatar,
+        },
+      }));
+
+      socket.emit("getMessages", {
+        success: true,
+        data: messagesWithSender,
+      });
+    } catch (error: unknown) {
+      socket.emit("getMessages", {
+        success: false,
+        msg: "Erreur lors de la récupération des messages.",
       });
     }
   });
