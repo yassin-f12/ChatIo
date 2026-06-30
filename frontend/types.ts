@@ -106,6 +106,15 @@ export type ConversationListItemProps = {
   router: Router;
 };
 
+export type LastMessageProps = {
+  id: string; 
+  content: string;
+  sender: { id: string; name: string; avatar: string | null };
+  type?: 'text' | 'image' | 'file';
+  attachement?: string;
+  createdAt: string;
+};
+
 export type ConversationProps = {
   _id: string;
   type: "direct" | "group";
@@ -117,14 +126,7 @@ export type ConversationProps = {
     email: string;
   }[];
   name?: string;
-  lastMessage?: {
-    _id: string;
-    content: string;
-    senderId: string;
-    type: "text" | "image" | "file";
-    attachment?: string;
-    createdAt: string;
-  };
+  lastMessage?: LastMessageProps;
   createdAt: string;
   updatedAt: string;
 };

@@ -33,15 +33,10 @@ const ScreenWrapper = ({
       imageStyle={{ opacity: showPattern ? bgOpacity : 0 }}
       source={require('@/assets/images/bgPattern.png')}
     >
-      <Pressable onPress={Keyboard.dismiss} style={{ flex: 1 }}>
-        <View style={[{ paddingTop, paddingBottom, flex: 1 }, style]}>
-          <StatusBar
-            barStyle={'light-content'}
-            backgroundColor={'transparent'}
-          />
-          {children}
-        </View>
-      </Pressable>
+      <View style={[{ paddingTop, paddingBottom, flex: 1 }, style]}>
+        <StatusBar barStyle={'light-content'} backgroundColor={'transparent'} />
+        {children}
+      </View>
     </ImageBackground>
   );
 };

@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { AuthProvider } from '@/contexts/authContext';
+import '@/utils/momentConfig';
 
 const StackLayout = () => {
   return (

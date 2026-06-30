@@ -7,7 +7,7 @@ import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/contexts/authContext';
-import { ConversationProps } from '@/types';
+import { ConversationProps, MessageProps, ResponseProps } from '@/types';
 import { scale, verticalScale } from '@/utils/styling';
 import { useLocalSearchParams } from 'expo-router';
 import {
@@ -17,7 +17,7 @@ import {
   PlanetIcon,
   PlusIcon,
 } from 'phosphor-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -31,6 +31,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import Loading from '@/components/Loading';
 import { uploadFileToCloudinary } from '@/services/imageService';
+import { getMessages, newMessage } from '@/socket/socketEvents';
 
 const Conversation = () => {
   const { user: currentUser } = useAuth();
@@ -43,6 +44,7 @@ const Conversation = () => {
   } = useLocalSearchParams(); // viens du composants conversationsItem -> params
 
   const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<MessageProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<{ uri: string } | null>(
     null,
@@ -63,30 +65,30 @@ const Conversation = () => {
 
   let conversationName = isDirect ? otherParticipant?.name : name;
 
-  const dummyMessages = [
-    {
-      id: 'msg_10',
-      sender: {
-        id: 'user_2',
-        name: 'jane smith',
-        avatar: null,
-      },
-      content: 'That would be really usefull',
-      createdAt: '10:42 AM',
-      isMe: false,
-    },
-    {
-      id: 'msg_9',
-      sender: {
-        id: 'me',
-        name: 'Vous',
-        avatar: null,
-      },
-      content: 'mhh no',
-      createdAt: '10:43 AM',
-      isMe: true,
-    },
-  ];
+  useEffect(() => {
+    newMessage(newMessageHandler);
+    getMessages(messagesHandler);
+    getMessages({ conversationId });
+    return () => {
+      newMessage(newMessageHandler, true);
+      getMessages(messagesHandler, true);
+    };
+  }, []);
+
+  const newMessageHandler = (res: ResponseProps<MessageProps & { conversationId: string }>) => {
+    setLoading(false);
+    if (res.success && res.data) {
+      if (res.data.conversationId == conversationId) {
+        setMessages((prev) => [res.data as MessageProps, ...prev]);
+      }
+    } else {
+      Alert.alert('Erreur', res.msg);
+    }
+  };
+
+  const messagesHandler = (res: ResponseProps<MessageProps[]>) => {
+    if (res.success && res.data) setMessages(res.data);
+  };
 
   const onPickFile = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -122,6 +124,20 @@ const Conversation = () => {
           Alert.alert('Erreur', "Impossible d'envoyer l'image");
         }
       }
+
+      newMessage({
+        conversationId,
+        sender: {
+          id: currentUser?.id,
+          name: currentUser.name,
+          avatar: currentUser.avatar,
+        },
+        content: message.trim(),
+        attachement,
+      });
+
+      setMessage('');
+      setSelectedFile(null);
     } catch (error) {
       Alert.alert('Erreur', "Échec de l'envoi de votre message");
     } finally {
@@ -162,9 +178,11 @@ const Conversation = () => {
 
         <View style={styles.content}>
           <FlatList
-            data={dummyMessages}
+            data={messages}
             inverted={true}
+            style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.messagesContent}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (

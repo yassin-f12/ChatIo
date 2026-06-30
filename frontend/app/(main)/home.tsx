@@ -5,8 +5,17 @@ import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/contexts/authContext';
-import { getConversations, newConversation } from '@/socket/socketEvents';
-import { ConversationProps, ResponseProps } from '@/types';
+import {
+  getConversations,
+  newConversation,
+  newMessage,
+} from '@/socket/socketEvents';
+import {
+  ConversationProps,
+  LastMessageProps,
+  MessageProps,
+  ResponseProps,
+} from '@/types';
 import { verticalScale } from '@/utils/styling';
 import { useRouter } from 'expo-router';
 import { GearSixIcon, PlusIcon } from 'phosphor-react-native';
@@ -23,12 +32,31 @@ const Home = () => {
   useEffect(() => {
     getConversations(processGetConversations);
     newConversation(newConversationHandler);
+    newMessage(newMessageHandler);
     getConversations(null);
     return () => {
       getConversations(processGetConversations, true);
       newConversation(newConversationHandler, true);
+      newMessage(newMessageHandler, true);
     };
   }, []);
+
+  const newMessageHandler = (
+    res: ResponseProps<MessageProps & { conversationId: string }>,
+  ) => {
+    if (res.success && res.data) {
+      let conversationId = res.data.conversationId;
+      setConversations((prev) => {
+        let updatedConversations = prev.map((item) => {
+          if (item._id == conversationId)
+            item.lastMessage = res.data as LastMessageProps;
+          return item;
+        });
+
+        return updatedConversations;
+      });
+    }
+  };
 
   const processGetConversations = (res: ResponseProps<ConversationProps[]>) => {
     setLoading(false);

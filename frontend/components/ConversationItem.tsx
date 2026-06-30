@@ -5,7 +5,6 @@ import Typo from './Typo';
 import moment from 'moment';
 import { ConversationListItemProps } from '@/types';
 import { useAuth } from '@/contexts/authContext';
-import { useRouter } from 'expo-router';
 
 const ConversationItem = ({
   item,
