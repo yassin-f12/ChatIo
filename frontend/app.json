@@ -4,12 +4,12 @@
     "slug": "chatIo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/welcome.png",
     "scheme": "chatio",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true 
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +30,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/welcome.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -43,6 +43,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b888f195-0740-4e23-b9f5-a2c19be3ff3d"
+      }
+    },
+    "owner": "yasdevfs",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/b888f195-0740-4e23-b9f5-a2c19be3ff3d"
     }
   }
 }
