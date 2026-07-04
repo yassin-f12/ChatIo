@@ -1,4 +1,3 @@
-import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '@/constants';
 import { ResponseProps } from '@/types';
 import { getCloudinaryErrorMessage } from '@/utils/cloudinaryErrors';
 import axios from 'axios';
@@ -7,6 +6,10 @@ export const uploadFileToCloudinary = async (
   file: { uri?: string } | string,
   folderName: string,
 ): Promise<ResponseProps<string | null>> => {
+  const CLOUDINARY_CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const CLOUDINARY_UPLOAD_PRESET =
+    process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
   if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
     throw new Error('Cloudinary env vars manquantes');
   }
